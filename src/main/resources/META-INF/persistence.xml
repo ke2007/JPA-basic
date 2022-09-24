@@ -14,8 +14,8 @@
             <!-- 옵션 -->
             <property name="hibernate.show_sql" value="true"/>
             <property name="hibernate.format_sql" value="true"/>
-            <property name="hibernate.use_sql_comments" value="true"/>
-            <!--<property name="hibernate.hbm2ddl.auto" value="create" />-->
+            <property name="hibernate.jdbc.batch_size" value="10"/> <!--value 만큼 모았다가 쿼리전송 -->
+<!--            <property name="hibernate.hbm2ddl.auto" value="create" />-->
         </properties>
     </persistence-unit>
 </persistence>
