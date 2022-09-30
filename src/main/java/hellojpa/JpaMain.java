@@ -92,20 +92,40 @@ public class JpaMain {
 ////            member.setId("ID_A"); //직접 ID를 만들어서 사용한다면
 //            member.setUsername("C");
 //
-//            em.persist(member)
-            Team team =new Team();
-            team.setName("Team_A");
+////            em.persist(member)
+//            Team team =new Team();
+//            team.setName("Team_A");
+//            em.persist(team);
+//
+//            Member member = new Member();
+//            member.setUsername("member1");
+//            member.setTeamId(team.getId());
+//            em.persist(member); //select * from member m join team t on m.team_id = t.team_id; ANSI 표준 조인쿼리
+//            Member findMember = em.find(Member.class, member.getId());
+//            Long findTeamId = findMember.getTeamId();
+//            Team findTeam = em.find(Team.class, findTeamId); //둘이 연관관계가 없기때문에  객체를 테이블에 맞추어 표현하면  상당히 귀찮고 객체지향 스럽지않다..
+
+            // 객체지향 모델링 (ORM 매핑) 저장
+            Team team = new Team();
+            team.setName("TeamB");
             em.persist(team);
 
             Member member = new Member();
-            member.setUsername("member1");
-            member.setTeamId(team.getId());
-            em.persist(member); //select * from member m join team t on m.team_id = t.team_id; ANSI 표준 조인쿼리
+            member.setUsername("member2");
+            member.setTeam(team); //JPA 가 알아서 team 에서 PK 값을 꺼내서 INSERT 할때 FK 값으로 사용
+            em.persist(member);
+
+            em.flush(); // 쿼리확인
+            em.clear();
+            // 객체지향 모델링 (ORM 매핑) 조회
 
             Member findMember = em.find(Member.class, member.getId());
 
-            Long findTeamId = findMember.getTeamId();
-            Team findTeam = em.find(Team.class, findTeamId); //둘이 연관관계가 없기때문에  객체를 테이블에 맞추어 표현하면  상당히 귀찮고 객체지향 스럽지않다..
+            Team findTeam = findMember.getTeam(); //꺼내서 바로사용
+            System.out.println("findTeam = " + findTeam.getName());
+
+
+
 
             tx.commit(); //자동으로 호출
         } catch (Exception e) { //에러나면 롤백

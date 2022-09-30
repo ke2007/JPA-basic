@@ -62,10 +62,20 @@ public class Member {
 
     @Column(name = "USERNAME" )
     private String username;
+//
+//    @Column(name = "TEAM_ID")
+//    private Long teamId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "TEAM_ID") //객체지향 모델링 (ORM 매핑)
+    private Team team;
 
-    @Column(name = "TEAM_ID")
-    private Long teamId;
+    public Team getTeam() {
+        return team;
+    }
 
+    public void setTeam(Team team) {
+        this.team = team;
+    }
 
     public Member() { // JPA는 기본생성자가 필요함
 
@@ -86,14 +96,6 @@ public class Member {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public Long getTeamId() {
-        return teamId;
-    }
-
-    public void setTeamId(Long teamId) {
-        this.teamId = teamId;
     }
 
 }
