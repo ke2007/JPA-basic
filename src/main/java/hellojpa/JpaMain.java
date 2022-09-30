@@ -107,31 +107,74 @@ public class JpaMain {
 //            Team findTeam = em.find(Team.class, findTeamId); //둘이 연관관계가 없기때문에  객체를 테이블에 맞추어 표현하면  상당히 귀찮고 객체지향 스럽지않다..
 
             // 객체지향 모델링 (ORM 매핑) 저장
+
             Team team = new Team();
             team.setName("TeamB");
+
             em.persist(team);
 
             Member member = new Member();
-            member.setUsername("member2");
-            member.setTeam(team); //JPA 가 알아서 team 에서 PK 값을 꺼내서 INSERT 할때 FK 값으로 사용
+            member.setUsername("member3");
+//            member.setTeam(team); //JPA 가 알아서 team 에서 PK 값을 꺼내서 INSERT 할때 FK 값으로 사용
+            member.setTeam(team); // TEAM_ID = 1 값이 들어감.
             em.persist(member);
+
+//            team.getMembers().add(member); // 값이 DB에 안들어갈거같은데 ..? 가짜매핑이기때문에 JPA가 관리 하지않음. DB의 TEAM_ID에 값이 안들어감(Null). 따라서 값을 넣으려면 ? 연관관계의 주인인 member.setTeam(team); 해야함
+            //근데 JPA의 입장에서나 그렇지 객체지향 관점에선 두개 다 적는게 맞다
+
+            Team findTeam = em.find(Team.class, team.getId());
+            List<Member> members = findTeam.getMembers(); //members의 데이터를 끌고오는 시점에 select 쿼리가 날아가서 DB에서 값을 가져옴. 따로 값을 team.getMembers().add(member); 이렇게 넣을필요가없다.
+            // 그렇다고 넣지않는다는것은 객체지향 스럽지 않다..
+            // 심지어 두 군데에서 문제가 발생한다 .
+            // 첫 번쨰로.
+            // 완전히 em.flush, clear 하면 team.getMembers().add(member) 해도 문제가 없다.
+            // 근데 flush와 clear가 없을때는? ( 쿼리가 쓰기지연 SQL 저장소에서 안나가서 DB에 값이 안들어 갔을때는? )
+            // 해당 member collection에는 JPA가 DB에서 끌어올 값이 없다. -> select쿼리가 안나간다  -> jpa가 끌고와서 조회가 안된다.
+            // 양쪽에 넣어야겠지?
+            // 두 번째로는
+            // JPA없이 순수 자바코드로 테스트케이스를 작성해야하는데
+            // 따로 저장된 값이 없으니 테스트를 할수가 없다.
+            // 따라서 양쪽에 전부 값을 세팅 해줘야겠지??
+            // 근데 까먹으면 어떡하지
+            // 연관관계 편의 메서드 를 만들자 Member.setTeam()에 team.getMembers().add(member); 작성
+
+            //무한루프 조심
+            // toString, lombok, JSON라이브러리등...
+            // JSON 라이브러리 같은경우 DTO를 따로 생성해서 거기서 처리를하자
+
+            // 단방향 매핑만으로도 이미 연관관계 매핑은 완료된다.
+            // 양방향 매핑은 반대방향으로 조회(객체 그래프 탐색) 기능이 추가된것 뿐이다.
+            // 양방향은 필요할때 추가해도 되므로(테이블에 영향을 주지않음) JPQL 에서 역방향으로 탐색할 일이 많다.
+            // 단방향 매핑을 잘해두면 양방향 매핑은 테이블 손댈 필요없이 코드 몇줄만 더 적으면된다 !!
+            // 객체입장에선 양방향매핑이 고민거리만 많아진다..
+            // 매핑 관점에선 단방향 매핑만으로도 매핑이 된다.
+            // 1. 설계시 기본적 마인드셋
+            // 단방향 매핑으로 다 끝낸다
+            // 1 대 N 관계일때 N인 쪽에 연관관계 매핑을 쫙~ 바르고 설계를 끝낸다.
+            // 실제 개발단계에 들어가서 양방향 매핑을 고민해도 늦지 않는다.
+            // ※ 연관관계의 주인은 외래 키의 위치를 기준으로 정해야한다.
+            // ※ 비즈니스 로직을 기준으로( 제일 중요한 로직이라던지 ) 연관관계의 주인을 선택하면 안된다.!!!!!무조건 외래키의 위치를 기준으로!!
+
+            for (Member m : members) {
+                System.out.println("m.getUsername() = " + m.getUsername());
+            }
+
 
             em.flush(); // 쿼리확인
             em.clear();
             // 객체지향 모델링 (ORM 매핑) 조회
 
-            Member findMember = em.find(Member.class, member.getId()); //양방향 연관관계
 
-            List<Member> members = findMember.getTeam().getMembers(); // findMember (Member) 에서 team으로 team 에서 Memeber 로
-
-            for (Member m : members) {
-                System.out.println("m = " + m.getUsername());
-                
-            }
-
-
-            Team findTeam = findMember.getTeam(); //꺼내서 바로사용
-            System.out.println("findTeam = " + findTeam.getName());
+//            Member findMember = em.find(Member.class, member.getId()); //양방향 연관관계
+//
+//            List<Member> members = findMember.getTeam().getMembers(); // findMember (Member) 에서 team으로 team 에서 Memeber 로
+//
+//            for (Member m : members) {
+//                System.out.println("m = " + m.getUsername());
+//
+//            }
+//            Team findTeam = findMember.getTeam(); //꺼내서 바로사용
+//            System.out.println("findTeam = " + findTeam.getName());
 
             //수정 (DB에 100번이 있다는 가상의 예제)
 //            Team newTeam = em.find(Team.class, 100L);//PK가 100L 이 있다고 가정

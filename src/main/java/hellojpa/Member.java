@@ -75,6 +75,8 @@ public class Member {
 
     public void setTeam(Team team) {
         this.team = team;
+        team.getMembers().add(this); // 연관관계 편의 메서드, 근데 set 은 이름이 좀 그러니까 (로직이 들어가서) changeTeam이라던지 ..로 바꾸어서 사용자!
+        // 좀 더 깊이있게 쓰려면 복잡하다. 체크할게 있나없나 ~
     }
 
     public Member() { // JPA는 기본생성자가 필요함
