@@ -88,11 +88,24 @@ public class JpaMain {
             * 엔티티 매핑 - 기본 키 매핑
             * */
 
-            Member member = new Member();
-//            member.setId("ID_A"); //직접 ID를 만들어서 사용한다면
-            member.setUsername("C");
+//            Member member = new Member();
+////            member.setId("ID_A"); //직접 ID를 만들어서 사용한다면
+//            member.setUsername("C");
+//
+//            em.persist(member)
+            Team team =new Team();
+            team.setName("Team_A");
+            em.persist(team);
 
-            em.persist(member);
+            Member member = new Member();
+            member.setUsername("member1");
+            member.setTeamId(team.getId());
+            em.persist(member); //select * from member m join team t on m.team_id = t.team_id; ANSI 표준 조인쿼리
+
+            Member findMember = em.find(Member.class, member.getId());
+
+            Long findTeamId = findMember.getTeamId();
+            Team findTeam = em.find(Team.class, findTeamId); //둘이 연관관계가 없기때문에  객체를 테이블에 맞추어 표현하면  상당히 귀찮고 객체지향 스럽지않다..
 
             tx.commit(); //자동으로 호출
         } catch (Exception e) { //에러나면 롤백

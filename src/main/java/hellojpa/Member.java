@@ -49,7 +49,8 @@ public class Member {
 
 //    @Id //직접할당은 @id, 자동생성은 (@GeneratedValue) DB 별로 다름
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) //자동생성/ 뭔가 값을 생성하고싶다 GenerationType.AUTO 옵션은 DB 방언 별로 적용 (확인해보고 쓰자)
+    @GeneratedValue(strategy = GenerationType.AUTO) //자동생성/ 뭔가 값을 생성하고싶다 GenerationType.AUTO 옵션은 DB 방언 별로 적용 (확인해보고 쓰자)
+    @Column(name = "MEMBER_ID")
 //    generator = "MEMBER_SEQ_GENERATOR")  //@SequenceGenerator
 
     //GenerationType.IDENTITY 전략 (strategy): MySQL 에서 사용 기본 키 생성을 데이터 베이스에 위임한다 . 이 전략은 내가 ID에 값을 넣으면안되고(쿼리는 null 로 insert 날아감) DB에 insert 를 해야한다, ==DB에 값이 들어가야 ID값을 알수있다..
@@ -59,8 +60,12 @@ public class Member {
     //GenerationType.SEQUENCE 전략 (strategy) : 주로 Oracle 데이터베이스에서 사용 . SEQUENCE  전략도 마찬가지로 Entity Manager 가 MEMBER_SEQ 에서 PK 값을 끌어옴 그 후에 영속성 컨텍스트에 저장, 쿼리는 날아가지 않음
     private Long id; //Long 인 이유 : int 의 경우 10억이 넘어가면 다시 1부터인데 그때 다시 바꾸느니 차라리 처음부터 Long 을 써라
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "USERNAME" )
     private String username;
+
+    @Column(name = "TEAM_ID")
+    private Long teamId;
+
 
     public Member() { // JPA는 기본생성자가 필요함
 
@@ -82,4 +87,13 @@ public class Member {
     public void setUsername(String username) {
         this.username = username;
     }
+
+    public Long getTeamId() {
+        return teamId;
+    }
+
+    public void setTeamId(Long teamId) {
+        this.teamId = teamId;
+    }
+
 }
