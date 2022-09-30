@@ -4,6 +4,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
+import java.util.List;
 
 
 public class JpaMain {
@@ -119,14 +120,24 @@ public class JpaMain {
             em.clear();
             // 객체지향 모델링 (ORM 매핑) 조회
 
-            Member findMember = em.find(Member.class, member.getId());
+            Member findMember = em.find(Member.class, member.getId()); //양방향 연관관계
+
+            List<Member> members = findMember.getTeam().getMembers(); // findMember (Member) 에서 team으로 team 에서 Memeber 로
+
+            for (Member m : members) {
+                System.out.println("m = " + m.getUsername());
+                
+            }
+
 
             Team findTeam = findMember.getTeam(); //꺼내서 바로사용
             System.out.println("findTeam = " + findTeam.getName());
 
+            //수정 (DB에 100번이 있다는 가상의 예제)
+//            Team newTeam = em.find(Team.class, 100L);//PK가 100L 이 있다고 가정
 
-
-
+//            findMember.setTeam(newTeam); //찾은 팀을 newTeam 으로 바꾸고싶다 UPDATE 쿼리가 나감. FK가 업데이트됨
+                
             tx.commit(); //자동으로 호출
         } catch (Exception e) { //에러나면 롤백
             System.out.println("==========에러발생===========");
