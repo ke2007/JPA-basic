@@ -75,7 +75,7 @@ public class JpaMain {
               JPQL 쿼리 실행시 FLUSH 가 자동으로 호출이 된다. "실수로라도 쿼리가 반영되지않았을 때를 대비해서 "
 
             em.detach(member); //영속성 컨텍스트(논리적인 개념)에서 제외시키기 ( 준영속 상태, detach 된 상태 )
-            em.clear();//entity manager를통해 영속성 컨텍스트 안에있는 모든걸 제외시킴 , 1차캐시를 모두 비움
+            em.clear();//entity manager를 통해 영속성 컨텍스트 안에있는 모든걸 제외시킴 , 1차캐시를 모두 비움
 
             System.out.println("==============================");
             tx.commit(); //DB에 반영 필수 !! // 트랜잭션 커밋시점에  쓰지지연 SQL 저장소에 있던 엔티티들이 FLUSH되면서 쿼리가 날아감! 이후 실제 데이터베이스 트랜잭션에 커밋
@@ -108,22 +108,22 @@ public class JpaMain {
 
             // 객체지향 모델링 (ORM 매핑) 저장
 
-            Team team = new Team();
-            team.setName("TeamB");
-
-            em.persist(team);
-
-            Member member = new Member();
-            member.setUsername("member3");
-//            member.setTeam(team); //JPA 가 알아서 team 에서 PK 값을 꺼내서 INSERT 할때 FK 값으로 사용
-            member.setTeam(team); // TEAM_ID = 1 값이 들어감.
-            em.persist(member);
+//            Team team = new Team();
+//            team.setName("TeamB");
+//
+//            em.persist(team);
+//
+//            Member member = new Member();
+//            member.setUsername("member3");
+////            member.setTeam(team); //JPA 가 알아서 team 에서 PK 값을 꺼내서 INSERT 할때 FK 값으로 사용
+//            member.setTeam(team); // TEAM_ID = 1 값이 들어감.
+//            em.persist(member);
 
 //            team.getMembers().add(member); // 값이 DB에 안들어갈거같은데 ..? 가짜매핑이기때문에 JPA가 관리 하지않음. DB의 TEAM_ID에 값이 안들어감(Null). 따라서 값을 넣으려면 ? 연관관계의 주인인 member.setTeam(team); 해야함
             //근데 JPA의 입장에서나 그렇지 객체지향 관점에선 두개 다 적는게 맞다
 
-            Team findTeam = em.find(Team.class, team.getId());
-            List<Member> members = findTeam.getMembers(); //members의 데이터를 끌고오는 시점에 select 쿼리가 날아가서 DB에서 값을 가져옴. 따로 값을 team.getMembers().add(member); 이렇게 넣을필요가없다.
+//            Team findTeam = em.find(Team.class, team.getId());
+//            List<Member> members = findTeam.getMembers(); //members의 데이터를 끌고오는 시점에 select 쿼리가 날아가서 DB에서 값을 가져옴. 따로 값을 team.getMembers().add(member); 이렇게 넣을필요가없다.
             // 그렇다고 넣지않는다는것은 객체지향 스럽지 않다..
             // 심지어 두 군데에서 문제가 발생한다 .
             // 첫 번쨰로.
@@ -135,7 +135,7 @@ public class JpaMain {
             // JPA없이 순수 자바코드로 테스트케이스를 작성해야하는데
             // 따로 저장된 값이 없으니 테스트를 할수가 없다.
             // 따라서 양쪽에 전부 값을 세팅 해줘야겠지??
-            // 근데 까먹으면 어떡하지
+            // 근데 까먹으면 어떡하지?..
             // 연관관계 편의 메서드 를 만들자 Member.setTeam()에 team.getMembers().add(member); 작성
 
             //무한루프 조심
@@ -155,13 +155,13 @@ public class JpaMain {
             // ※ 연관관계의 주인은 외래 키의 위치를 기준으로 정해야한다.
             // ※ 비즈니스 로직을 기준으로( 제일 중요한 로직이라던지 ) 연관관계의 주인을 선택하면 안된다.!!!!!무조건 외래키의 위치를 기준으로!!
 
-            for (Member m : members) {
-                System.out.println("m.getUsername() = " + m.getUsername());
-            }
-
-
-            em.flush(); // 쿼리확인
-            em.clear();
+//            for (Member m : members) {
+//                System.out.println("m.getUsername() = " + m.getUsername());
+//            }
+//
+//
+//            em.flush(); // 쿼리확인
+//            em.clear();
             // 객체지향 모델링 (ORM 매핑) 조회
 
 
@@ -180,7 +180,19 @@ public class JpaMain {
 //            Team newTeam = em.find(Team.class, 100L);//PK가 100L 이 있다고 가정
 
 //            findMember.setTeam(newTeam); //찾은 팀을 newTeam 으로 바꾸고싶다 UPDATE 쿼리가 나감. FK가 업데이트됨
-                
+            /*
+            *1 : N (일대다) 연관관계
+             */
+//            Member member = new Member();
+//            member.setUsername("member1");
+//
+//            em.persist(member);
+//
+//            Team team = new Team();
+//            team.setName("teamA");
+//            team.getMembers().add(member);
+//
+//            em.persist(team);
             tx.commit(); //자동으로 호출
         } catch (Exception e) { //에러나면 롤백
             System.out.println("==========에러발생===========");

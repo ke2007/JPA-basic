@@ -11,7 +11,8 @@ public class Team {
     private Long id;
     private String name;
 
-    @OneToMany(mappedBy = "team") //mappedBy => "나는 뭐랑 연결되어있는거지?(나의 반대편엔 team 으로 매핑이 되어있어)
+    @OneToMany //mappedBy => "나는 뭐랑 연결되어있는거지?(나의 반대편엔 team 으로 매핑이 되어있어)
+//    @JoinColumn(name = "TEAM_ID") // 1 : N 연관관계 join column 필수
     //연관관계의 주인과 mappedBy 의 존재이유
     // ※매우 중요 & 이해하기 어려움
     // 객체와 테이블관의 연관관계를 맺는 차이를 이해해야한다.
@@ -31,12 +32,12 @@ public class Team {
     // 따라서 국룰을 만들었다.
     // 연관관계의 주인 (Owner) - 양방향 매핑에서 나오는 개념
     // 객체의 두 관계(Member에 있는 team , Team 에 있는 List members) 중 누가 주인이 될래?
-    // 연관관계의 주인 만이 외래키를 관리(등록, 수정)
+    // 연관관계의 주인만이 외래키를 관리(등록, 수정)
     // 주인이 아닌쪽은 읽기만 가능
     // 주인은 mappedBy 속성을 사용하면 X ( 나는 매핑 되어버렸어~ <- 이건 주인의 대사가 아니다)
     // 주인이 아니라면 mappedBy 속성으로 주인이 누구인지 지정해줘야한다.
     // member 에서 joinColumn 으로 DB와 매핑을 했다( =관리한다 )
-    // Team 의 list members 의 mappedBy ="team" <- 해당 team은 members 의 Team team 에의해 관리가 된다 는 뜻
+    // Team 의 list members 의 mappedBy ="team" <- 해당 team은 members 의 Team team 에 의해 관리가 된다 는 뜻
     // List members에 뭐 넣고 난리를 쳐봤자 DB에선 바뀌지않는다. 읽기만 된다, 대신 조회는 가능. JPA 가 Team.getMembers 로 조회는됨. 업데이트를 할때는 관리하는 Team team 만 참조
     // ※ 외래키가 있는곳을 주인으로 정해라 !!
     // OneToMany 집어넣은 곳에 (mappedBy = "주인") !!! -> 가짜매핑
