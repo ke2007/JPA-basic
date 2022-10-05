@@ -193,6 +193,17 @@ public class JpaMain {
 //            team.getMembers().add(member);
 //
 //            em.persist(team);
+
+            Movie movie = new Movie();
+            movie.setDirector("Aaa");
+            movie.setActor("bbb");
+            movie.setName("바람");
+            movie.setPrice(10000);
+
+            em.persist(movie);
+
+
+
             tx.commit(); //자동으로 호출
         } catch (Exception e) { //에러나면 롤백
             System.out.println("==========에러발생===========");
