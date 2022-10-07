@@ -4,6 +4,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -194,14 +195,74 @@ public class JpaMain {
 //
 //            em.persist(team);
 
-            Movie movie = new Movie();
-            movie.setDirector("Aaa");
-            movie.setActor("bbb");
-            movie.setName("바람");
-            movie.setPrice(10000);
+//            Movie movie = new Movie();
+//            movie.setDirector("Aaa");
+//            movie.setActor("bb1b");
+//            movie.setName("바람");
+//            movie.setPrice(10000);
 
-            em.persist(movie);
+            /*
+            * @Mapped Superclass
+            * 상속관계 매핑이 아님!
+            * 엔티티도 아님! -> base Entity 라는 테이블이 없다. 속성만 내려주는 역할
+            * 부모클래스(BaseEntity)를 상속받는 자식클래스(member, team)에게 매핑정보만 제공
+            * 조회, 검색 불가(em.find(BaseEntity.class, )불가능).
+            * abstract 기타제어자 사용 !
+            * 엔티티가 공통으로 사용하는 매핑정보를 모으는 역할(등록일, 수정일, 등록자, 수정자 등)
+            * */
+//            Member member = new Member();
+//            member.setUsername("A");
+//            member.setCreatedBy("kim");
+//            member.setCreatedDate(LocalDateTime.now());
+//            em.persist(member);
+            /*
+            * 지연로딩과 프록시
+            * em.getReference 호출시 내부의 라이브러리를 통해 프록시 엔티티 객체 (가짜, find 쓰면 진짜임) 를 준다.
+            * 껍데기는 똑같은데 안에가 텅텅 빔
+            * 내부구조 Entity target (진짜 값을 가르킴)이 있고 초기값은 null이다
+            * 실제 엔티티를 상속받아서 만들어진다. ( 실제 클래스와 겉 모양이 같다 )
+            * 사용하는 입장에서는 진짜 객체인지 프록시 객체인지 구분하지 않고 사용한다. (몇가지 주의사항있음)
+            * 프록시 객체는 실제 객체의 실제 참조(target)을 보관
+            * 프록시 객체 호출시 예를들어 getName()을 호출시 실제 객체의 getName()을 대신 호출함
+            * 근데 처음엔 Target이 없는데 ..?
+            *
+            * -> 프록시 객체의 초기화 순서
+            * 1. em.getReference 을 통한 getName() 호출 "어 값이없다(당연히 처음엔 없음)
+            * 2. JPA가 영속성 컨텍스트에 요청함 "진짜 객체를 가져와"
+            * 3. 영속성 컨텍스트가 DB를 조회한뒤 실제 Entity 객체를 생성해서 진짜 객체를 연결해줌
+            * 4. target.getName() 을 요청해서 진짜 Member의 getName()을 요청할수있게해줌
+            * 5. 한번 초기화 한 이후에는 또 할 필요없으므로 계속 사용가능
+            * 6. Hibernate.initialize(프록시객체) 하면 강제 초기화 가능 //JPA표준엔 강제 초기화가 없다 ( 무식하게 프록시객체.getName() 해야함ㅋ)
+            *
+            *  -> ※ 중요 프록시의 특징
+            * 1. 프록시객체는 처음 사용할때 한 번만 초기화 , 초기화한 값을 계속 사용
+            * 2. ★★★★★★★★★★ 프록시 객체를 초기화 할때, 프록시 객체가 실제 엔티티로 바뀌는것이아님!! 초기화 되면 프록시 객체가 실제 엔티티에 접근이 가능할뿐임
+            * 3. 프록시 객체는 원본 엔티티를 상속받음. 타임 체크시에 ( == 비교실패, 프록시멤버와 프록시 멤버가 아닌건 타입이 다르므로 instance of를 사용해야한다 ex)"어 Member 타입이네 == 비교해야지~" 하면 안된다는 뜻)
+            * 4. 영속성 컨텍스트에 찾는 엔티티가 이미 있으면 em.getReference()를 호출해도 실제 엔티티가 반환됨! ( 두가지 이유 : 이미 있는걸 프록시로 가져와봐야 성능상 이점이 없다 )
+            * 4-1  두번째 이유 JPA 는 하나의 트랜잭션 안에서 하나의 영속성 컨텍스트에서 가져왔고, pk가 똑같다면 == 비교시에 항상 ture 를 보장해주는 매커니즘을 가지고있기 때문이다 ( 동일성 보장 ※추가로 동등성 비교는 equals()다 ) !
+            * 5. 준영속 상태일때( 영속성컨텍스트에서 관리를 안할때, clear,close,detach) 프록시 초기화를 시도하면 LazyInitializationException 에러 발생
+             */
+//            Member findMember = em.find(Member.class, 1L);
+//
+//            PrintMember(findMember); //어느경우엔 멤버만
+//            printMemberAndTeam(findMember); //어느경우엔 멤버랑 팀이랑.. 최적화가 안되어있다. 해결방법은? 지연로딩과 프록시
 
+            Member member = new Member();
+            member.setUsername("hello");
+            em.persist(member);
+            em.flush();
+            em.clear();
+
+//            Member findMember = em.find(Member.class, member.getId());
+            Member findMember = em.getReference(Member.class, member.getId());
+            System.out.println("findMember = " + findMember.getClass()); //Member$HibernateProxy$3sAahy5x 프록시 클래스.
+            System.out.println("findMember = " + findMember.getId());
+            System.out.println("findMember.getUsername() = " + findMember.getUsername()); //em.getReference 에서 DB에 있는걸 getUsername 을 찍는 시점에 가져옴
+
+
+//            Movie findMovie = em.find(Movie.class, movie.getId());
+//
+//            System.out.println("findMovie = " + findMovie);
 
 
             tx.commit(); //자동으로 호출
@@ -215,5 +276,17 @@ public class JpaMain {
         }
 
         emf.close(); //리소스 릴리즈를 위한 팩토리매니저 종료
+    }
+
+    private static void PrintMember(Member findMember) {
+        System.out.println("findMember = " + findMember.getUsername());
+    }
+
+    private static void printMemberAndTeam(Member findMember) {
+        String username = findMember.getUsername();
+        System.out.println("username = " + username);
+
+        Team team = findMember.getTeam();
+        System.out.println("team = " + team.getName());
     }
 }
