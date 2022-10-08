@@ -237,7 +237,7 @@ public class JpaMain {
             *  -> ※ 중요 프록시의 특징
             * 1. 프록시객체는 처음 사용할때 한 번만 초기화 , 초기화한 값을 계속 사용
             * 2. ★★★★★★★★★★ 프록시 객체를 초기화 할때, 프록시 객체가 실제 엔티티로 바뀌는것이아님!! 초기화 되면 프록시 객체가 실제 엔티티에 접근이 가능할뿐임
-            * 3. 프록시 객체는 원본 엔티티를 상속받음. 타임 체크시에 ( == 비교실패, 프록시멤버와 프록시 멤버가 아닌건 타입이 다르므로 instance of를 사용해야한다 ex)"어 Member 타입이네 == 비교해야지~" 하면 안된다는 뜻)
+            * 3. 프록시 객체는 원본 엔티티를 상속받음. 타입 체크시에 ( == 비교실패, 프록시멤버와 프록시 멤버가 아닌건 타입이 다르므로 instance of를 사용해야한다 ex)"어 Member 타입이네 == 비교해야지~" 하면 안된다는 뜻)
             * 4. 영속성 컨텍스트에 찾는 엔티티가 이미 있으면 em.getReference()를 호출해도 실제 엔티티가 반환됨! ( 두가지 이유 : 이미 있는걸 프록시로 가져와봐야 성능상 이점이 없다 )
             * 4-1  두번째 이유 JPA 는 하나의 트랜잭션 안에서 하나의 영속성 컨텍스트에서 가져왔고, pk가 똑같다면 == 비교시에 항상 ture 를 보장해주는 매커니즘을 가지고있기 때문이다 ( 동일성 보장 ※추가로 동등성 비교는 equals()다 ) !
             * 5. 준영속 상태일때( 영속성컨텍스트에서 관리를 안할때, clear,close,detach) 프록시 초기화를 시도하면 LazyInitializationException 에러 발생
@@ -247,27 +247,59 @@ public class JpaMain {
 //            PrintMember(findMember); //어느경우엔 멤버만
 //            printMemberAndTeam(findMember); //어느경우엔 멤버랑 팀이랑.. 최적화가 안되어있다. 해결방법은? 지연로딩과 프록시
 
-            Member member = new Member();
-            member.setUsername("hello");
-            em.persist(member);
-            em.flush();
-            em.clear();
-
+//            Member member = new Member();
+//            member.setUsername("hello");
+//            em.persist(member);
+//
+//            em.flush();
+//            em.clear();
+//
 //            Member findMember = em.find(Member.class, member.getId());
-            Member findMember = em.getReference(Member.class, member.getId());
-            System.out.println("findMember = " + findMember.getClass()); //Member$HibernateProxy$3sAahy5x 프록시 클래스.
-            System.out.println("findMember = " + findMember.getId());
-            System.out.println("findMember.getUsername() = " + findMember.getUsername()); //em.getReference 에서 DB에 있는걸 getUsername 을 찍는 시점에 가져옴
+//             Member findMember = em.getReference(Member.class, member.getId());
+//            System.out.println("findMember = " + findMember.getClass()); //Member$HibernateProxy$3sAahy5x 프록시 클래스.
+//            System.out.println("findMember = " + findMember.getId());
+//            System.out.println("findMember.getUsername() = " + findMember.getUsername()); //em.getReference 에서 DB에 있는걸 getUsername 을 찍는 시점에 가져옴
 
 
 //            Movie findMovie = em.find(Movie.class, movie.getId());
 //
 //            System.out.println("findMovie = " + findMovie);
 
+            /*
+            * 지연로딩과 즉시로딩
+            * 지연로딩 세팅 -> 연관된항목(team)을 프록시객체로 가져옴
+            *
+             */
+            Team team = new Team();
+            team.setName("teamA");
+            em.persist(team);
+
+            Member member1 = new Member();
+            member1.setUsername("member1");
+            member1.setTeam(team);
+
+            em.persist(member1);
+
+
+
+
+            em.flush();
+            em.clear();
+
+            Member findMember = em.find(Member.class, member1.getId());
+
+            System.out.println("findMember.getTeam().getClass() = " + findMember.getTeam().getClass());
+
+            System.out.println("==========");
+            System.out.println(findMember.getTeam().getName());
+            System.out.println("==========");
+
+
 
             tx.commit(); //자동으로 호출
         } catch (Exception e) { //에러나면 롤백
             System.out.println("==========에러발생===========");
+            e.printStackTrace();
             tx.rollback();
         }
         finally { //다쓰고나서 무조건 엔티티 매니저 닫기

@@ -1,6 +1,7 @@
 package hellojpa;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -14,7 +15,7 @@ import java.util.Date;
 //        sequenceName = "MEMBER_SEQ", //매핑할 DB시퀀스 이름
 //        initialValue = 1, allocationSize = 50) // initialValue = DDL생성시에만 사용됨  처음 시작하는 수를 지정한다,
 //        allocationSize = 시퀀스 한번 호출에 증가하는 수 (성능 최적화에 사용됨) 매번 호출하면 네트워크를 계속 쓰게되니 미리 50개를 DB에 먼저 올려놓고 메모리에서 1씩  사용. <- 반복.
-public class Member {
+public class Member extends BaseEntity {
 /*엔티티 매핑 - 필드와 컬럼 매핑
     @Id //(PK 매핑
     private Long id;
@@ -63,15 +64,13 @@ public class Member {
     @Column(name = "USERNAME" )
     private String username;
 
-    @OneToOne
-    @JoinColumn(name = "LOCKER_ID")
-    private Locker locker;
-
 //    @Column(name = "TEAM_ID")
 //    private Long teamId;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER) // FetchType.LAZY team을 프록시 객체를 조회 , 멤버클래스만 DB에서조회.
     @JoinColumn(name = "TEAM_ID") //객체지향 모델링 (ORM 매핑)
     private Team team;
+
+
 
     public Team getTeam() {
         return team;
