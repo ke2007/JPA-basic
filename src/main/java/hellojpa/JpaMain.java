@@ -268,33 +268,70 @@ public class JpaMain {
             /*
             * 지연로딩과 즉시로딩
             * 지연로딩 세팅 -> 연관된항목(team)을 프록시객체로 가져옴
-            *
+            * 즉시로딩 세팅 -> member를 로딩할때 연관된항목(team)을 join 을 해서 바로 가져온다.
+            * ※ 실무에서 복잡한 테이블일 경우 가급적 지연로딩(LAZY)만 사용
+            * -> 즉시 로딩을 적용하면 예상하지못한 SQL이 발생한다
+            *    즉시 로딩은 JPQL에서 N+1문제를 일으킨다
+            *    @ManyToOne, @OneToOne 은 기본이 즉시 로딩 -> LAZY 로 설정
+            *  @OneToMany, @ManyToMany 는 기본이 지연로딩이다
              */
-            Team team = new Team();
-            team.setName("teamA");
-            em.persist(team);
+//            Team team = new Team();
+//            team.setName("teamA");
+//            em.persist(team);
+//
+//            Member member1 = new Member();
+//            member1.setUsername("member1");
+//            member1.setTeam(team);
+//            em.persist(member1);
+//
+//
+//
+//
+//            em.flush();
+//            em.clear();
+//
+//            Member findMember = em.find(Member.class, member1.getId());
+//
+//
+//            System.out.println("findMember.getTeam().getClass() = " + findMember.getTeam().getClass());
+//
+//            System.out.println("==========");
+//            System.out.println(findMember.getTeam().getName());
+//            System.out.println("==========");
 
-            Member member1 = new Member();
-            member1.setUsername("member1");
-            member1.setTeam(team);
+            /*
+            * 영속성 전이와 고아객체
+            * 아.. 좀 귀찮은데 child를 저렇게 넣는건,,,persist를 세번이나.. "parent persist 할때 child까지 persist 할순없을까?"
+            * 이때 사용하는게 parent 에서 List<Child> 에 CASCADE 옵션을~넣는다
+            * 심플하다 이름그대로 연쇄~~ 이게 "영속성 전이" 근데 주의사항이있다.
+            * 영속성 전이는 연관관계를 매핑하는것과 아무 관련이 없다
+            * 엔티티를 영속화 할때 연관된 엔티티도 함께 영속화하는 편리함을 제공할뿐 그이상 그이하도 아니다 .
+            * 그럼 언제쓰지?..
+            *   -> 하나의 부모가 자식들을 관리할때는 의미가있다
+            *   -> 게시판 <--> 첨부파일 테이블의 데이터,경로
+            * 쓰면안되는케이스는..?
+            *   -> 첨부파일을 만약 다른엔티티에서 관리한다던가 하면 쓰면안된다. 소유자가 하나일때는 쓰자~
+            * ※단일 엔티티에 완전 종속적일때(소유자가 하나일때) && 라이프사이클이 똑같을때는 사용해도된다 ~
+            *
+            * 고아객체 : 부모엔티티와 연과관계가 끊어진 자식 엔티티를 자동으로 삭제
+            * orphanRemoval = ture 옵션
+            * 부모를 지우면 자식들도 지워짐
+             */
 
-            em.persist(member1);
+            Child child1 = new Child();
+            Child child2 = new Child();
 
+            Parent parent = new Parent();
+            parent.addChild(child1);
+            parent.addChild(child2);
 
-
+            em.persist(parent);
 
             em.flush();
             em.clear();
 
-            Member findMember = em.find(Member.class, member1.getId());
-
-            System.out.println("findMember.getTeam().getClass() = " + findMember.getTeam().getClass());
-
-            System.out.println("==========");
-            System.out.println(findMember.getTeam().getName());
-            System.out.println("==========");
-
-
+            Parent findparent = em.find(Parent.class, parent.getId());
+            findparent.getChildList().remove(0);
 
             tx.commit(); //자동으로 호출
         } catch (Exception e) { //에러나면 롤백
